@@ -1,0 +1,4 @@
+fastapi
+typing
+requests
+uvicorn
