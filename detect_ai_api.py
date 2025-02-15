@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 import requests
 import json
 from typing import Dict
+import os
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -14,7 +15,7 @@ app = FastAPI(
 # Function to make API call
 def detect_ai_image(file: UploadFile) -> Dict:
     url = "https://api.aiornot.com/v1/reports/image"
-    api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJhMGM4YmI0LTYxOWEtNDY2MC04NjgwLWFjZjhkMmUzNDVmYSIsInVzZXJfaWQiOiIyYTBjOGJiNC02MTlhLTQ2NjAtODY4MC1hY2Y4ZDJlMzQ1ZmEiLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.q_WmfHbQjuPxw8nxKCrmW0bUkGbQ9ILbdGYzHVystsY"
+    api_key = os.environ("API_KEY")
 
     headers = {
         'Authorization': f'Bearer {api_key}',
