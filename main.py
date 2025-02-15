@@ -2,12 +2,13 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import requests
 import uvicorn
+import os
 
 app = FastAPI(title="AI Image Detector API")
 
 def detect_ai_image(file: UploadFile):
     url = "https://api.aiornot.com/v1/reports/image"
-    api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjJhMGM4YmI0LTYxOWEtNDY2MC04NjgwLWFjZjhkMmUzNDVmYSIsInVzZXJfaWQiOiIyYTBjOGJiNC02MTlhLTQ2NjAtODY4MC1hY2Y4ZDJlMzQ1ZmEiLCJhdWQiOiJhY2Nlc3MiLCJleHAiOjAuMH0.q_WmfHbQjuPxw8nxKCrmW0bUkGbQ9ILbdGYzHVystsY"
+    api_key = os.environ("API_KEY")
 
     headers = {'Authorization': f'Bearer {api_key}', 'Accept': 'application/json'}
     files = {'object': (file.filename, file.file, file.content_type)}
@@ -18,16 +19,47 @@ def detect_ai_image(file: UploadFile):
     else:
         raise HTTPException(status_code=response.status_code, detail=f"Error: {response.text}")
 
-@app.post("/detect")
+# Endpoint for uploading and detecting AI-generated images
+@app.post("/detect", summary="Detect AI-generated images")
 async def detect_image(file: UploadFile = File(...)):
+    # Validate file type
     if file.content_type not in ["image/png", "image/jpeg", "image/jpg"]:
-        raise HTTPException(status_code=400, detail="Invalid file type.")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Only PNG, JPG, and JPEG are supported."
+        )
     
     try:
-        result = detect_ai_image(file)
-        return JSONResponse(content=result, status_code=200)
+        # Call the detection API
+        detection_result = detect_ai_image(file)
+
+        # Extract required information from response
+        report = detection_result["report"]
+        verdict = report["verdict"]
+        ai_confidence = report["ai"]["confidence"]
+        human_confidence = report["human"]["confidence"]
+        generator_data = report["generator"]
+
+        # Prepare response
+        return JSONResponse(
+            content={
+                "verdict": "AI-Generated" if verdict == "ai" else "Human-Made",
+                "confidence": {
+                    "ai": f"{ai_confidence:.2%}",
+                    "human": f"{human_confidence:.2%}"
+                },
+                "generators": {
+                    generator: f"{details['confidence']:.2%}" 
+                    for generator, details in generator_data.items()
+                }
+            },
+            status_code=200
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 # Uncomment if running locally
 # if __name__ == "__main__":
