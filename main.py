@@ -2,13 +2,16 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import requests
 import uvicorn
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 app = FastAPI(title="AI Image Detector API")
 
 def detect_ai_image(file: UploadFile):
     url = "https://api.aiornot.com/v1/reports/image"
-    api_key = os.environ("API_KEY")
+    api_key = os.getenv("API_KEY")
 
     headers = {'Authorization': f'Bearer {api_key}', 'Accept': 'application/json'}
     files = {'object': (file.filename, file.file, file.content_type)}
