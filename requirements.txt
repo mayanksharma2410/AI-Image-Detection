@@ -2,3 +2,4 @@ fastapi
 typing
 requests
 uvicorn
+python-multipart
