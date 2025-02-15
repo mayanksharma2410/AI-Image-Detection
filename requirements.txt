@@ -3,3 +3,4 @@ typing
 requests
 uvicorn
 python-multipart
+python-dotenv
